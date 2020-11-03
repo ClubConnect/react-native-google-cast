@@ -62,6 +62,7 @@ RCT_EXPORT_MODULE()
 
     if (session && session.remoteMediaClient) {
       fulfill(session.remoteMediaClient);
+      [session.remoteMediaClient addListener:self];
     } else {
       NSError *error = [NSError errorWithDomain:NSCocoaErrorDomain
                                            code:GCKErrorCodeNoMediaSession
