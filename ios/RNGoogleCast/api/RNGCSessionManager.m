@@ -135,10 +135,13 @@ RCT_EXPORT_METHOD(endSession
 - (void)sessionManager:(GCKSessionManager *)sessionManager
      didEndCastSession:(GCKCastSession *)session
              withError:(NSError *)error {
+  // TODO: UGLY FIX To avoi a crash
+  /*
   [self sendEventWithName:SESSION_ENDED body:@{
     @"session": [RCTConvert fromGCKCastSession:session],
     @"error": [error localizedDescription]
   }];
+  */
 }
 
 @end
