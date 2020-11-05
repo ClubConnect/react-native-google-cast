@@ -198,6 +198,10 @@ export default class RemoteMediaClient {
     return EventEmitter.addListener(Native.MEDIA_STATUS_UPDATED, handler)
   }
 
+  onProgressUpdated(handler: (progress: number) => void) {
+    return EventEmitter.addListener(Native.PLAYBACK_PROGRESS, handler)
+  }
+
   /**
    * Convenience event that is triggered in addition to `onMediaStatusUpdated` when `playerState` changes to `playing`.
    *

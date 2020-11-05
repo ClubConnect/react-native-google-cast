@@ -1,4 +1,5 @@
 package com.reactnative.googlecast.api;
+import android.media.projection.MediaProjection;
 
 import androidx.annotation.Nullable;
 
@@ -10,9 +11,11 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.common.annotations.VisibleForTesting;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.android.gms.cast.MediaQueueItem;
+import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
@@ -38,6 +41,10 @@ public class RNGCRemoteMediaClient extends ReactContextBaseJavaModule {
     "GoogleCast:MediaPlaybackStarted";
   public static final String MEDIA_PLAYBACK_ENDED =
     "GoogleCast:MediaPlaybackEnded";
+  public static final String PLAYBACK_PROGRESS =
+    "GoogleCast:PLAYBACK_PROGRESS";
+
+  private RemoteClientCallBack remoteClientCallBack;
 
   public RNGCRemoteMediaClient(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -55,6 +62,7 @@ public class RNGCRemoteMediaClient extends ReactContextBaseJavaModule {
     constants.put("MEDIA_STATUS_UPDATED", MEDIA_STATUS_UPDATED);
     constants.put("MEDIA_PLAYBACK_STARTED", MEDIA_PLAYBACK_STARTED);
     constants.put("MEDIA_PLAYBACK_ENDED", MEDIA_PLAYBACK_ENDED);
+    constants.put("PLAYBACK_PROGRESS", PLAYBACK_PROGRESS);
 
     return constants;
   }
@@ -218,7 +226,19 @@ public class RNGCRemoteMediaClient extends ReactContextBaseJavaModule {
         throw new IllegalStateException(("No castSession!"));
       }
 
+       RemoteMediaClient.ProgressListener progressListener = new RemoteMediaClient.ProgressListener() {
+        @Override
+        public void onProgressUpdated(long progressMs, long durationMs) {
+          final WritableMap json = new WritableNativeMap();
+          json.putDouble("progress", progressMs);
+          sendEvent(PLAYBACK_PROGRESS, json);
+        }
+      };
+
+      Long progressListenerInterval = 1000L;
+
       final RemoteMediaClient client = castSession.getRemoteMediaClient();
+      client.addProgressListener(progressListener, progressListenerInterval);
 
       if (client == null) {
         throw new IllegalStateException(("No remoteMediaClient!"));
@@ -241,5 +261,12 @@ public class RNGCRemoteMediaClient extends ReactContextBaseJavaModule {
 
   protected void runOnUiQueueThread(Runnable runnable) {
     getReactApplicationContext().runOnUiQueueThread(runnable);
+  }
+
+  public class RemoteClientCallBack extends RNGCRemoteMediaClientCallback {
+
+    public RemoteClientCallBack(RNGCRemoteMediaClient client) {
+      super(client);
+    }
   }
 }
